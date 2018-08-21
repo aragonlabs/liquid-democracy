@@ -1,0 +1,30 @@
+{
+  "name": "@aragon/apps-liquid-democracy",
+  "version": "1.0.0",
+  "description": "aragonOS liquid democracy implementation",
+  "main": "truffle-config.js",
+  "scripts": {
+    "lint": "solium --dir ./contracts",
+    "test": "TRUFFLE_TEST=true npm run ganache-cli:dev",
+    "test:gas": "GAS_REPORTER=true npm test",
+    "coverage": "./node_modules/@aragon/test-helpers/run-coverage.sh",
+    "console": "node_modules/.bin/truffle console",
+    "ganache-cli:dev": "./node_modules/@aragon/test-helpers/ganache-cli.sh",
+    "ganache-cli:coverage": "SOLIDITY_COVERAGE=true npm run ganache-cli:dev"
+  },
+  "author": "Aragon One AG",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "@aragon/test-helpers": "^1.0.0",
+    "ethereumjs-abi": "^0.6.4",
+    "ganache-cli": "^6.0.3",
+    "solidity-coverage": "0.4.3",
+    "solium": "^1.0.4",
+    "truffle": "^4.0.5",
+    "truffle-hdwallet-provider": "0.0.3"
+  },
+  "dependencies": {
+    "@aragon/apps-staking": "^1.0.0",
+    "@aragon/os": "^3.1.10"
+  }
+}
