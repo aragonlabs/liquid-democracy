@@ -12,11 +12,11 @@ contract Delegation is AragonApp {
 	using SafeMath8 for uint8;
 
 	struct DelegateAccount {
-		Checkpointing.History delegatedToBalance;  // checkpointed tokens delegated to account
-		Checkpointing.History delegateHistory;   // checkpointed addr of the delegate 
-		uint64 delegationTime;            // can be used to 
-		uint8 chainDepth;                 // incoming chain depth (not reset on undelegations)
-		uint8 allowedDepth;               // max allowed depth by delegate
+		Checkpointing.History delegatedToBalance; // checkpointed tokens delegated to account
+		Checkpointing.History delegateHistory;    // checkpointed addr of the delegate 
+		uint64 delegationTime;                    // can be used to 
+		uint8 chainDepth;                         // incoming chain depth (not reset on undelegations)
+		uint8 allowedDepth;                       // max allowed depth by delegate
 	}
 
 	StakingHistory staking;
@@ -73,7 +73,7 @@ contract Delegation is AragonApp {
 		setDelegate(msg.sender, to);
 	}
 
-	function undelegate() {
+	function undelegate() public {
 		DelegateAccount storage delegator = accounts[msg.sender];
 		require(delegator.delegationTime < getBlockNumber()); // avoid double delegations
 
