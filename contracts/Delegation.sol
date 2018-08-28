@@ -26,6 +26,11 @@ contract Delegation is AragonApp {
   uint8 public constant MAX_CHAIN_DEPTH = 20; // TODO: compute actual max given gas analysis
   uint8 public constant DEFAULT_ALLOWED_DEPTH = MAX_CHAIN_DEPTH / 2;
 
+  function initialize(StakingHistory _staking) onlyInit public {
+    staking = _staking;
+    initialized();
+  }
+
   function delegate(address to) public {
     require(to != msg.sender);  // avoid direct circular delegation chains
     require(to != NO_DELEGATE);
@@ -44,7 +49,9 @@ contract Delegation is AragonApp {
     // array big enough so the worse possible chain would fit
     address[] memory chain = new address[](MAX_CHAIN_DEPTH.sub(initialDepth));
 
-    address delegateAddr = delegateOf(to);
+    address delegateAddr = to;
+
+    setDelegate(msg.sender, to);
 
     while (delegateAddr != NO_DELEGATE) {
       DelegateAccount storage del = accounts[delegateAddr];
@@ -69,8 +76,6 @@ contract Delegation is AragonApp {
 
       delegateAddr = delegateOf(delegateAddr);
     }
-
-    setDelegate(msg.sender, to);
   }
 
   function undelegate() public {

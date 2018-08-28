@@ -16,6 +16,7 @@
   "license": "GPL-3.0",
   "devDependencies": {
     "@aragon/test-helpers": "^1.0.0",
+    "eth-gas-reporter": "^0.1.10",
     "ethereumjs-abi": "^0.6.4",
     "ganache-cli": "^6.0.3",
     "solidity-coverage": "0.4.3",
