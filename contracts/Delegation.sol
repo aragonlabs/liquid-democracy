@@ -121,6 +121,27 @@ contract Delegation is AragonApp {
     accounts[addr].delegateHistory.add(uint256(delegateAddr), getBlockNumber());
   }
 
+  function delegationChainAt(address addr, uint256 time) public view returns (address[] memory) {
+    // When the array is created we don't know its required size
+    address[] memory chain = new address[](MAX_CHAIN_DEPTH);
+
+    uint256 i = 0;
+    address delegate = delegateOfAt(addr, time);
+    while (delegate != NO_DELEGATE) {
+      chain[i] = delegate;
+      delegate = delegateOfAt(delegate, time);
+      i = i.add(1);
+    }
+
+    assembly {
+      // resize array size so the length value is the actual length
+      // TODO: Figure out if it is possible to clean the empty memory
+      mstore(chain, i)
+    }
+
+    return chain;
+  }
+
   /**
   * @dev Delegated tokens + own tokens that haven't been delegated
   */
@@ -177,6 +198,10 @@ contract Delegation is AragonApp {
 
   function stakedBalanceAt(address addr, uint256 time) internal view returns (uint256) {
     return staking.totalStakedForAt(addr, time);
+  }
+
+  function totalStakedAt(uint256 time) internal view returns (uint256) {
+    return staking.totalStakedAt(time);
   }
 
   function max8(uint8 a, uint8 b) internal pure returns (uint8) {
