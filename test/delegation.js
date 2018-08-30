@@ -82,10 +82,32 @@ contract('Delegation app', accounts => {
   })
 
   it('delegates multi-chain', async () => {
+    await delegate(B, C)
+    await delegate(A, B)
+
+    await assertPower(C, STAKES[A] + STAKES[B] + STAKES[C])
+
+    await assertTotalDelegatedBalance(A, STAKES[A])
+    await assertTotalDelegatedBalance(B, STAKES[A] + STAKES[B])
+    await assertTotalDelegatedBalance(C, STAKES[A] + STAKES[B] + STAKES[C])
+  })
+
+  it('can undelegate', async () => {
+    await delegate(A, B)
+    await undelegate(A)
+
+    await assertPower(A, STAKES[A])
+    await assertPower(B, STAKES[B])
+  })
+
+  it('can undelegate multi-chain', async () => {
     await delegate(A, B)
     await delegate(B, C)
-    
-    await assertPower(C, STAKES[A] + STAKES[B] + STAKES[C])
+
+    await undelegate(A)
+
+    await assertPower(A, STAKES[A])
+    await assertPower(C, STAKES[B] + STAKES[C])
   })
 
   it('delegates multi-chain with undelegations', async () => {
@@ -98,7 +120,7 @@ contract('Delegation app', accounts => {
     await delegate(A, B)
     await undelegate(A)
 
-    // await assertPower(E, TOTAL_STAKED - STAKES[A])
+    await assertPower(F, TOTAL_STAKED - STAKES[A])
   })
 
   it('detects chain circles', async () => {

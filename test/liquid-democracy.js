@@ -14,11 +14,15 @@ contract('Liquid Democracy', accounts => {
   const A = accounts[1]
   const B = accounts[2]
   const C = accounts[3]
+  const D = accounts[4]
+  const E = accounts[5]
 
   const STAKES = {
     [A]: 100,
     [B]: 200,
     [C]: 300,
+    [D]: 1,
+    [E]: 1,
   }
 
   const neededSupport = pct16(50)
@@ -38,15 +42,22 @@ contract('Liquid Democracy', accounts => {
       await staking.addFakeStake(addr, STAKES[addr])
     }
   })
-  const createVote = async (from = A) => (
-    createdVoteId(await ld.newVote(EMPTY_SCRIPT, '', false, { from }))
-  )
+
+  // D and E always vote first yae and nay so the gas reports give results for the next votes
+  const createVote = async (from = A) => {
+    const id = createdVoteId(await ld.newVote(EMPTY_SCRIPT, '', false, { from }))
+
+    await vote(D, id, true)
+    await vote(E, id, false)
+
+    return id
+  }
 
   const assertVoteResult = async (voteId, yea, nay, stage) => {
     const voteInfo = await ld.getVote(voteId)
 
-    assert.equal(voteInfo[6], yea, 'yea count should have been correct' + stage ? ` for ${stage}` : '')
-    assert.equal(voteInfo[7], nay, 'nay count should have been correct' + stage ? ` for ${stage}` : '')
+    assert.equal(voteInfo[6], yea + STAKES[D], 'yea count should have been correct' + stage ? ` for ${stage}` : '')
+    assert.equal(voteInfo[7], nay + STAKES[E], 'nay count should have been correct' + stage ? ` for ${stage}` : '')
   }
 
   context('1-hop delegation chain', () => {
@@ -62,6 +73,20 @@ contract('Liquid Democracy', accounts => {
       await vote(C, voteId, false)
 
       await assertVoteResult(voteId, STAKES[A] + STAKES[B], STAKES[C])
+    })
+
+    it('allows overruling', async () => {
+      await vote(B, voteId, true)
+      await vote(A, voteId, false)
+
+      await assertVoteResult(voteId, STAKES[B], STAKES[A])
+    })
+
+    it('allows overruling before voting', async () => {
+      await vote(A, voteId, false)
+      await vote(B, voteId, true)
+
+      await assertVoteResult(voteId, STAKES[B], STAKES[A])
     })
 
     it('delegate can change vote after overruling', async () => {
@@ -94,6 +119,17 @@ contract('Liquid Democracy', accounts => {
 
       await vote(A, voteId, true)
       await assertVoteResult(voteId, STAKES[A] + STAKES[C], STAKES[B], 'after A overrules B')
+    })
+
+    it('allows overruling final delegate', async () => {
+      await vote(C, voteId, true)
+      await assertVoteResult(voteId, STAKES[A] + STAKES[B] + STAKES[C], 0, 'after C votes')
+
+      await vote(A, voteId, false)
+      await assertVoteResult(voteId, STAKES[B] + STAKES[C], STAKES[A], 'after A overrules C')
+
+      await vote(B, voteId, false)
+      await assertVoteResult(voteId, STAKES[C], STAKES[A] + STAKES[B], 'after B overrules C')      
     })
 
     it('avoids delegate vote by overruling early', async () => {
